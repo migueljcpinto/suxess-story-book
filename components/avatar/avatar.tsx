@@ -1,66 +1,79 @@
-import { Avatar as DefaultAvatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+    AvatarImage,
+    AvatarFallback,
+    Avatar as DefaultAvatar,
+} from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { forwardRef } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-export interface AvatarProps {
+const avatarVariants = cva("", {
+    variants: {
+        size: {
+            sm: "size-7",    // 28px
+            md: "size-8",    // 32px 
+            lg: "size-9",    // 36px
+            xl: "size-10"    // 40px
+        }
+    },
+    defaultVariants: {
+        size: "md"
+    }
+});
+
+type AvatarVariantProps = VariantProps<typeof avatarVariants>;
+export type Size = AvatarVariantProps["size"];
+
+type Props = {
+    isOnline?: boolean;
+    onClick?: () => void;
+    disabled?: boolean;
+} & AvatarVariantProps & {
     src?: string;
     alt?: string;
-    fallback?: string;
-    size?: "sm" | "md" | "lg" | "xl";
-    className?: string;
-    fallbackClassName?: string;
-    imageClassName?: string;
-}
-
-const sizeClasses = {
-    sm: "size-6",
-    md: "size-8",
-    lg: "size-12",
-    xl: "size-16",
 };
 
-const fallbackSizeClasses = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base",
-    xl: "text-lg",
-};
+export default function Avatar({
+    size,
+    isOnline,
+    src,
+    alt,
+    onClick,
+    disabled = false
+}: Props) {
+    const getInitials = (name?: string) => {
+        if (!name) return "U";
+        return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    };
 
-const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-    ({
-        src,
-        alt,
-        fallback = "U",
-        size = "md",
-        className,
-        fallbackClassName,
-        imageClassName
-    }, ref) => {
-        return (
+    return (
+        <div className="relative inline-block size-fit">
             <DefaultAvatar
-                ref={ref}
-                className={cn(sizeClasses[size], className)}
+                className={cn(avatarVariants({ size }))}
+                onClick={disabled ? undefined : onClick}
             >
-                {src && (
-                    <AvatarImage
-                        src={src}
-                        alt={alt}
-                        className={imageClassName}
-                    />
-                )}
-                <AvatarFallback
-                    className={cn(
-                        fallbackSizeClasses[size],
-                        fallbackClassName
-                    )}
-                >
-                    {fallback}
+                <AvatarImage
+                    className="aspect-square size-full object-cover"
+                    src={src}
+                    alt={alt}
+                />
+                <AvatarFallback className="bg-muted text-muted-foreground font-medium">
+                    {getInitials(alt)}
                 </AvatarFallback>
             </DefaultAvatar>
-        );
-    }
-);
 
-Avatar.displayName = "Avatar";
-
-export default Avatar;
+            {isOnline && (
+                <span
+                    className={cn(
+                        "absolute bottom-0 right-0 rounded-full border-2 border-background",
+                        "bg-green-500 shadow-sm",
+                        {
+                            "size-2": size === "sm" || size === "md",
+                            "size-3": size === "lg" || size === "xl"
+                        }
+                    )}
+                    data-testid="presence-indicator"
+                />
+            )}
+        </div>
+    );
+}

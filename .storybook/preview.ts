@@ -1,7 +1,17 @@
 import type { Preview } from "@storybook/nextjs-vite";
 import "../app/globals.css";
+import { withThemeByClassName } from "@storybook/addon-themes";
 
 const preview: Preview = {
+	decorators: [
+		withThemeByClassName({
+			themes: {
+				light: "light",
+				dark: "dark",
+			},
+			defaultTheme: "light",
+		}),
+	],
 	parameters: {
 		controls: {
 			matchers: {
